@@ -1,0 +1,57 @@
+name: Optimize circuit meshes
+
+# Manually dispatched: downloads the z_tracks.zip source meshes from the
+# race3 release, runs gltf-transform optimize on each circuit, and commits
+# the optimized .glb files into tracks/ on the default branch.
+on:
+  workflow_dispatch:
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install gltf-transform CLI
+        run: npm install -g @gltf-transform/cli@4.4.2
+
+      - name: Download source meshes from race3 release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download race3 -p z_tracks.zip -R "$GITHUB_REPOSITORY"
+          unzip -o z_tracks.zip
+          echo "--- extracted source ---"
+          ls -la z_tracks
+
+      - name: Optimize circuits
+        run: |
+          set -euo pipefail
+          gltf-transform optimize z_tracks/autodromo_nazionale_monza_circuit_2020_layout.glb tracks/monza.glb --compress meshopt --texture-compress webp --texture-size 1024 --simplify-error 0.002
+          gltf-transform optimize z_tracks/circuit_de_spa-francorchamps_1992_layout.glb tracks/spa.glb --compress meshopt --texture-compress webp --texture-size 1024 --simplify-error 0.002
+          gltf-transform optimize z_tracks/imola_circuit_2024_layout.glb tracks/imola.glb --compress meshopt --texture-compress webp --texture-size 1024 --simplify-error 0.002
+          gltf-transform optimize z_tracks/silverstone_circuit_2024_layout.glb tracks/silverstone.glb --compress meshopt --texture-compress webp --texture-size 1024 --simplify-error 0.002
+          echo "--- optimized outputs ---"
+          ls -la tracks/monza.glb tracks/spa.glb tracks/imola.glb tracks/silverstone.glb
+
+      - name: Commit optimized meshes
+        run: |
+          set -euo pipefail
+          rm -rf z_tracks z_tracks.zip
+          git config user.name "Kyle Kostka"
+          git config user.email "kostka.kyle@gmail.com"
+          git add tracks/monza.glb tracks/spa.glb tracks/imola.glb tracks/silverstone.glb
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Add optimized circuit meshes"
+            git push
+          fi
