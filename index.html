@@ -111,6 +111,28 @@
   .lbrow .lbw{color:#8a93a6;font-size:11px}
   .lbrow .lbb{font-weight:800;color:#7dffb4;font-variant-numeric:tabular-nums}
   #lbme{cursor:pointer;color:#ffd24a;text-decoration:underline dotted}
+
+  /* main menu */
+  #menu{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 30%,#16243a,#070a12 70%);z-index:80;pointer-events:auto}
+  #menu .mcard{width:min(620px,94vw);max-height:94vh;overflow-y:auto;text-align:center;padding:26px 22px 22px}
+  #menu h1{font-size:34px;letter-spacing:.16em;font-weight:900;margin-bottom:4px;background:linear-gradient(92deg,#ffd24a,#ff6a3d);-webkit-background-clip:text;background-clip:text;color:transparent}
+  #menu .sub{font-size:11px;letter-spacing:.28em;color:#7f8ba3;font-weight:700;margin-bottom:22px}
+  #tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+  .tcard{background:#171d29;border:2px solid transparent;border-radius:12px;padding:14px 8px;cursor:pointer;transition:.15s}
+  .tcard:hover{background:#1e2635}
+  .tcard.sel{border-color:#ffd24a;background:#241f14}
+  .tcard .tn{font-weight:800;font-size:13.5px;letter-spacing:.05em}
+  .tcard .tl{font-size:10.5px;color:#8a93a6;margin-top:3px;font-variant-numeric:tabular-nums}
+  .tcard.dim{opacity:.45}
+  #mrow{display:flex;gap:10px;align-items:center;justify-content:center;margin-bottom:14px}
+  .mbtn{padding:11px 18px;border:0;border-radius:10px;font-weight:800;font-size:13px;cursor:pointer;background:#242b3a;color:#dfe5f0}
+  .mbtn.go{background:#18be6e;color:#04140b;padding:13px 30px;font-size:15px}
+  #mlaps{background:#171d29;color:#dfe5f0;border:0;border-radius:10px;padding:11px 12px;font-weight:700;font-size:13px}
+  #menu .mfoot{font-size:11px;color:#6f7a90;margin-top:14px;line-height:1.7}
+  #menu .mbal{color:#7dffb4;font-weight:800}
+  /* outro */
+  #outro .card{width:min(520px,94vw)}
+  #outro .cardhd{background:linear-gradient(120deg,#0f8a4a,#0b5f7a)}
 </style>
 </head>
 <body>
@@ -132,7 +154,17 @@
     <select id="trackSel" class="btn"><option value="monza">MONZA</option><option value="spa">SPA</option><option value="imola">IMOLA</option><option value="silverstone">SILVERSTONE</option><option value="suzuka">SUZUKA</option><option value="oval">OVAL</option></select>
   </div>
   <div class="hud" id="credit"></div>
-  <div id="betpanel"><div class="card">
+  <div id="menu"><div class="mcard">
+  <h1>GRID OF LEGENDS</h1><div class="sub">PICK A CIRCUIT &middot; PLACE YOUR BET &middot; WATCH IT UNFOLD</div>
+  <div id="tgrid"></div>
+  <div id="mrow">
+    <button class="mbtn" id="mrand">🎲 RANDOM TRACK</button>
+    <select id="mlaps"><option value="5">5 laps</option><option value="9">9 laps</option><option value="13" selected>13 laps</option><option value="20">20 laps</option></select>
+  </div>
+  <button class="mbtn go" id="mgo">START RACE WEEKEND</button>
+  <div class="mfoot">bankroll <span class="mbal" id="mbal">$1,000</span> &middot; <span id="mname" style="cursor:pointer;text-decoration:underline dotted;color:#ffd24a">set name</span></div>
+</div></div>
+<div id="betpanel"><div class="card">
   <div class="hd"><div><small>PLACE YOUR BET</small><b id="bettrack">—</b></div><div style="text-align:right"><small>BALANCE</small><b id="betbal">$1,000</b></div></div>
   <div id="betrows"></div>
   <div id="betchips"><div class="chip2" data-v="25">$25</div><div class="chip2" data-v="50">$50</div><div class="chip2" data-v="100">$100</div><div class="chip2" data-v="250">$250</div><div class="chip2" data-v="500">$500</div></div>
@@ -145,7 +177,7 @@
 <div class="hud" id="results"><div class="card">
     <div class="cardhd"><small>RACE RESULT</small>RACE RESULT</div>
     <div id="betres"></div><div id="resrows"></div>
-    <div class="btns"><button class="btn" id="btnReplay2">WATCH AGAIN</button><button class="btn primary" id="btnNew2">NEW RACE</button></div>
+    <div class="btns"><button class="btn" id="btnMenu2">NEW TRACK</button><button class="btn" id="btnReplay2">REPLAY</button><button class="btn primary" id="btnNew2">NEW RACE</button></div>
   </div></div>
 </div>
 
