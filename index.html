@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Monaco GP — Race Replay</title>
+<title>Grid of Legends</title>
 <style>
   :root{ --panel: rgba(12,14,22,.82); --accent:#e10600; --txt:#f2f3f7; }
   *{margin:0;padding:0;box-sizing:border-box}
@@ -65,6 +65,8 @@
   #ctl .btn.active{outline:2px solid var(--accent)}
   #credit{left:50%;transform:translateX(-50%);bottom:8px;font-size:10px;color:#aab;opacity:.8}
   #ctl .btn{flex:none;padding:8px 14px;background:var(--panel);backdrop-filter:blur(6px)}
+  #trackSel{pointer-events:auto;cursor:pointer;border:0;border-radius:8px;padding:8px 14px;font-weight:700;font-size:13px;color:#fff;background:var(--panel);backdrop-filter:blur(6px);letter-spacing:.03em}
+  #tower .tyre{width:12px;font-weight:800;font-size:10px;text-align:center;flex:none}
 
   #loading{inset:0;display:flex;align-items:center;justify-content:center;background:#0a0c12;font-weight:700;letter-spacing:.2em;color:#667;z-index:50}
   @media (max-width:640px){ #tower{width:150px;font-size:11px} #map{width:110px;height:110px} }
@@ -76,7 +78,7 @@
   <div class="hud" id="loading">LOADING CIRCUIT…</div>
   <div class="hud" id="tower"><div class="hd"><span id="trackname">SUZUKA</span><span id="racename">GP</span></div><div id="towerrows"></div></div>
   <div class="hud" id="topbar">
-    <div class="box"><div class="lab">LAP</div><div class="val" id="lapval">1<small>/5</small></div></div>
+    <div class="box"><div class="lab">LAP</div><div class="val" id="lapval">1<small>/13</small></div></div>
     <div class="box"><div class="lab">LEADER</div><div class="val" id="leadval">—</div></div>
     <div class="box"><div class="lab">SPEED</div><div class="val" id="spdval">0<small> mph</small></div></div>
   </div>
@@ -86,7 +88,7 @@
   <div class="hud" id="ctl">
     <button class="btn" id="btnNew">NEW RACE</button>
     <button class="btn" id="btnReplay">REPLAY</button>
-    <span id="trackbtns"><button class="btn" data-track="suzuka">SUZUKA</button><button class="btn" data-track="monaco">MONACO</button></span>
+    <select id="trackSel" class="btn"><option value="suzuka">SUZUKA</option><option value="monaco">MONACO</option><option value="spa">SPA</option><option value="silverstone">SILVERSTONE</option><option value="china">CHINA</option><option value="imola">IMOLA</option><option value="monza">MONZA</option><option value="interlagos">INTERLAGOS</option><option value="hockenheim">HOCKENHEIM</option><option value="bathurst">BATHURST</option><option value="nurburgring">NURBURG</option></select>
   </div>
   <div class="hud" id="credit"></div>
   <div class="hud" id="results"><div class="card">
