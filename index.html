@@ -133,15 +133,37 @@
   /* outro */
   #outro .card{width:min(520px,94vw)}
   #outro .cardhd{background:linear-gradient(120deg,#0f8a4a,#0b5f7a)}
+
+  /* commentary */
+  #ticker{position:absolute;left:50%;transform:translateX(-50%);bottom:58px;width:min(620px,86vw);background:var(--panel);border-radius:10px;padding:7px 14px;font-size:12.5px;backdrop-filter:blur(6px);display:none;min-height:18px}
+  #ticker b{color:#ffd24a}
+  /* camera bar */
+  #cambar{position:absolute;right:14px;bottom:52px;display:flex;gap:6px;pointer-events:auto}
+  #cambar .cb{padding:6px 10px;border-radius:8px;background:var(--panel);font-size:11px;font-weight:800;letter-spacing:.06em;cursor:pointer;color:#aab;backdrop-filter:blur(6px)}
+  #cambar .cb.on{background:#18be6e;color:#04140b}
+  #focsel{position:absolute;right:14px;bottom:14px;pointer-events:auto;background:var(--panel);color:#dfe5f0;border:0;border-radius:8px;padding:7px 10px;font-size:11.5px;font-weight:700;backdrop-filter:blur(6px)}
+  /* big map */
+  #mapwrap{cursor:pointer;pointer-events:auto}
+  #bigmap{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(6,8,14,.86);z-index:75;pointer-events:auto}
+  #bigmap canvas{background:#0e1220;border-radius:14px}
+  #bigmap .close{position:absolute;top:18px;right:22px;font-size:26px;color:#cfd6e4;cursor:pointer}
+  /* podium */
+  #podium{position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;z-index:90;pointer-events:none}
+  #podium .stand{display:flex;align-items:flex-end;gap:14px;margin-bottom:9vh}
+  #podium .p{width:150px;background:linear-gradient(180deg,#232b3c,#151b28);border-radius:12px 12px 0 0;text-align:center;padding:12px 8px 0;box-shadow:0 -6px 30px rgba(0,0,0,.5)}
+  #podium .p .nm{font-weight:800;font-size:15px}
+  #podium .p .tm{font-size:11px;color:#8a93a6;margin-bottom:8px}
+  #podium .p1{height:210px}#podium .p2{height:165px}#podium .p3{height:135px}
+  #podium .medal{font-size:26px}
 </style>
 </head>
 <body>
 <div id="app">
-  <canvas id="gl"></canvas>
+  <canvas id="gl"></canvas><canvas id="fwcanvas" style="position:fixed;inset:0;pointer-events:none;z-index:79"></canvas>
   <div class="hud" id="loading">LOADING CIRCUIT…</div>
   <div class="hud" id="tower"><div class="hd"><span id="trackname">SUZUKA</span><span id="racename">GP</span></div><div id="towerrows"></div></div>
   <div class="hud" id="topbar">
-    <div class="box"><div class="lab">LAP</div><div class="val" id="lapval">1<small>/13</small></div></div>
+    <div class="box"><div class="lab">LAP</div><div class="val" id="lapval">1<small>/5</small></div></div>
     <div class="box"><div class="lab">LEADER</div><div class="val" id="leadval">—</div></div>
     <div class="box"><div class="lab">SPEED</div><div class="val" id="spdval">0<small> mph</small></div></div>
   </div>
@@ -151,7 +173,7 @@
   <div class="hud" id="ctl">
     <button class="btn" id="btnNew">NEW RACE</button>
     <button class="btn" id="btnReplay">REPLAY</button>
-    <select id="trackSel" class="btn"><option value="monza">MONZA</option><option value="spa">SPA</option><option value="imola">IMOLA</option><option value="silverstone">SILVERSTONE</option><option value="suzuka">SUZUKA</option><option value="oval">OVAL</option></select>
+    <select id="trackSel" class="btn" style="display:none"><option value="monza">MONZA</option><option value="spa">SPA</option><option value="imola">IMOLA</option><option value="silverstone">SILVERSTONE</option><option value="suzuka">SUZUKA</option><option value="oval">OVAL</option></select>
   </div>
   <div class="hud" id="credit"></div>
   <div id="menu"><div class="mcard">
@@ -159,7 +181,7 @@
   <div id="tgrid"></div>
   <div id="mrow">
     <button class="mbtn" id="mrand">🎲 RANDOM TRACK</button>
-    <select id="mlaps"><option value="5">5 laps</option><option value="9">9 laps</option><option value="13" selected>13 laps</option><option value="20">20 laps</option></select>
+    <select id="mlaps"><option value="3">3 laps</option><option value="5" selected>5 laps</option><option value="9">9 laps</option><option value="13">13 laps</option><option value="20">20 laps</option></select>
   </div>
   <button class="mbtn go" id="mgo">START RACE WEEKEND</button>
   <div class="mfoot">bankroll <span class="mbal" id="mbal">$1,000</span> &middot; <span id="mname" style="cursor:pointer;text-decoration:underline dotted;color:#ffd24a">set name</span></div>
@@ -174,6 +196,11 @@
 <div class="hud" id="lbtoggle">🏆 LEADERBOARD</div>
 <div id="lbpanel"><div class="lbhd"><span>TOP BANKROLLS &middot; <span id="lbme">set name</span></span><span id="lbclose">✕</span></div><div id="lbrows"></div></div>
 <div class="hud" id="bal">$1,000</div>
+<div class="hud" id="ticker"></div>
+<div id="cambar"><div class="cb on" data-m="AUTO">AUTO</div><div class="cb" data-m="CHASE">CHASE</div><div class="cb" data-m="ONBOARD">ONBOARD</div><div class="cb" data-m="TRACKSIDE">TRACKSIDE</div><div class="cb" data-m="HELI">HELI</div></div>
+<select id="focsel"><option value="-1">Follow: leader / action</option></select>
+<div id="bigmap"><span class="close" id="bmclose">&times;</span><canvas id="bmcanvas" width="760" height="760"></canvas></div>
+<div id="podium"><div class="stand" id="podstand"></div></div>
 <div class="hud" id="results"><div class="card">
     <div class="cardhd"><small>RACE RESULT</small>RACE RESULT</div>
     <div id="betres"></div><div id="resrows"></div>
