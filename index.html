@@ -139,6 +139,8 @@
   #scbanner{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:77;display:none;background:linear-gradient(90deg,#4a3c00,#7a6400);border:1px solid #ffd24a;color:#ffe680;font-weight:900;letter-spacing:.14em;font-size:13px;padding:8px 20px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.5);animation:scpulse 1.2s ease-in-out infinite;pointer-events:none}
   @keyframes scpulse{0%,100%{opacity:1}50%{opacity:.6}}
   @media (max-height:520px){ #scbanner{top:44px;font-size:11px;padding:6px 15px} }
+  /* during oval qualifying, hide the race HUD that would otherwise show stale/empty data */
+  body.qualifying #tower,body.qualifying #mapwrap,body.qualifying #topbar,body.qualifying #camlabel{display:none!important}
 
   /* betting */
   #betpanel{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(6,8,14,.82);z-index:60;pointer-events:auto;backdrop-filter:blur(3px)}
