@@ -257,6 +257,7 @@
   <div class="hud" id="lights" style="display:none"><div class="l"></div><div class="l"></div><div class="l"></div><div class="l"></div><div class="l"></div></div>
   <div class="hud" id="ctl">
     <button class="btn" id="hudtoggle" title="Toggle HUD">⊟</button>
+    <button class="btn" id="pausebtn" title="Pause / resume (Space)">❙❙ PAUSE</button>
     <button class="btn" id="btnNew">NEW RACE</button>
     <button class="btn" id="btnReplay">REPLAY</button>
     <select id="trackSel" class="btn" style="display:none"><option value="monza">MONZA</option><option value="spa">SPA</option><option value="imola">IMOLA</option><option value="silverstone">SILVERSTONE</option><option value="suzuka">SUZUKA</option></select>
@@ -272,6 +273,7 @@
   <button class="mbtn go" id="mgo">START RACE WEEKEND</button>
   <div class="mfoot">bankroll <span class="mbal" id="mbal">$1,000</span> &middot; <span id="mname" style="cursor:pointer;text-decoration:underline dotted;color:#ffd24a">set name</span></div>
 </div></div>
+<div id="pausebadge" style="display:none;position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:60;background:rgba(10,12,18,.82);color:#ffd24a;font:800 13px/1 Arial;letter-spacing:.16em;padding:9px 16px;border:1px solid rgba(255,210,74,.5);border-radius:8px;backdrop-filter:blur(6px)">❙❙ PAUSED</div>
 <div id="scbanner">🟡 SAFETY CAR</div>
 <div id="qual"><div class="qhd"><span id="qualtitle">OVAL SPRINT · QUALIFYING</span><span id="qualtimer">20.0s</span></div><div id="qualrows"></div><button id="qualskip">SKIP QUALIFYING ›</button></div>
 <div id="betpanel"><div class="card">
