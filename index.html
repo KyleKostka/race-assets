@@ -79,6 +79,46 @@
   #loading{inset:0;display:flex;align-items:center;justify-content:center;background:#0a0c12;font-weight:700;letter-spacing:.2em;color:#667;z-index:50}
   @media (max-width:640px){ #tower{width:150px;font-size:11px} #map{width:110px;height:110px} }
 
+  /* ---- collapsible HUD (mobile cleanup) ---- */
+  #tower .hd{cursor:pointer;pointer-events:auto;user-select:none}
+  .tcol,.mapcol{color:#8a93a6;font-weight:900;font-size:11px;line-height:1;user-select:none}
+  #tower .hd .hr{display:flex;gap:8px;align-items:center}
+  #tower .tcol{transition:transform .2s}
+  #tower.collapsed #towerrows{display:none}
+  #tower.collapsed .tcol{transform:rotate(-90deg)}
+  .mapcol{position:absolute;top:5px;right:7px;z-index:2;cursor:pointer;pointer-events:auto;background:rgba(0,0,0,.4);border-radius:6px;padding:2px 7px}
+  #mapwrap.collapsed{padding:0}
+  #mapwrap.collapsed #map{display:none}
+  #mapwrap.collapsed .mapcol{position:static;padding:7px 11px;font-size:12px}
+  #mapwrap.collapsed .mapcol::after{content:" MAP"}
+  #hudtoggle{flex:none;padding:8px 12px;font-size:15px;line-height:1}
+  /* master clean-view: hide secondary chrome, keep lap/leader/speed + controls + credit */
+  body.hud-lite #tower,body.hud-lite #mapwrap,body.hud-lite #cambar,body.hud-lite #focsel,
+  body.hud-lite #ticker,body.hud-lite #camlabel,body.hud-lite #lbtoggle,body.hud-lite #bal{display:none!important}
+
+  /* this game runs in landscape, so phones are height-constrained, not width-constrained */
+  @media (max-height:520px){
+    #tower{width:138px;font-size:10.5px}
+    #tower .hd{font-size:9.5px;padding:2px 10px 5px}
+    #tower .row{padding:2px 10px}
+    #map{width:94px;height:94px}
+    #mapwrap{top:10px;right:10px;padding:5px}
+    #topbar{top:8px;gap:6px}
+    #topbar .box{padding:5px 11px}
+    #topbar .lab{font-size:9px}
+    #topbar .val{font-size:14px}
+    #cambar{bottom:46px;gap:5px}
+    #cambar .cb{padding:5px 8px;font-size:10px}
+    #ticker{bottom:48px;font-size:11px;padding:5px 12px;width:min(420px,58vw)}
+    #camlabel{display:none}
+    #credit{font-size:9px;bottom:3px}
+    #ctl{bottom:10px;left:10px;gap:6px}
+    #ctl .btn{padding:6px 11px;font-size:11.5px}
+    #focsel{bottom:10px;right:10px;font-size:10.5px;padding:6px 8px}
+    #bal{top:62px}
+    #lbtoggle{top:62px}
+  }
+
   /* betting */
   #betpanel{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(6,8,14,.82);z-index:60;pointer-events:auto;backdrop-filter:blur(3px)}
   #betpanel .card{width:min(560px,94vw);max-height:92vh;display:flex;flex-direction:column;background:#141822;border-radius:16px;overflow:hidden;box-shadow:0 24px 90px rgba(0,0,0,.7)}
@@ -169,16 +209,17 @@
 <div id="app">
   <canvas id="gl"></canvas><canvas id="fwcanvas" style="position:fixed;inset:0;pointer-events:none;z-index:79"></canvas>
   <div class="hud" id="loading">LOADING CIRCUIT…</div>
-  <div class="hud" id="tower"><div class="hd"><span id="trackname">SUZUKA</span><span id="racename">GP</span></div><div id="towerrows"></div></div>
+  <div class="hud" id="tower"><div class="hd"><span id="trackname">SUZUKA</span><span class="hr"><span id="racename">GP</span><span class="tcol">▾</span></span></div><div id="towerrows"></div></div>
   <div class="hud" id="topbar">
     <div class="box"><div class="lab">LAP</div><div class="val" id="lapval">1<small>/5</small></div></div>
     <div class="box"><div class="lab">LEADER</div><div class="val" id="leadval">—</div></div>
     <div class="box"><div class="lab">SPEED</div><div class="val" id="spdval">0<small> mph</small></div></div>
   </div>
-  <div class="hud" id="mapwrap"><canvas id="map" width="316" height="316"></canvas></div>
+  <div class="hud" id="mapwrap"><div class="mapcol" id="mapcol">▾</div><canvas id="map" width="316" height="316"></canvas></div>
   <div class="hud" id="camlabel">CAM · —</div>
   <div class="hud" id="lights" style="display:none"><div class="l"></div><div class="l"></div><div class="l"></div><div class="l"></div><div class="l"></div></div>
   <div class="hud" id="ctl">
+    <button class="btn" id="hudtoggle" title="Toggle HUD">⊟</button>
     <button class="btn" id="btnNew">NEW RACE</button>
     <button class="btn" id="btnReplay">REPLAY</button>
     <select id="trackSel" class="btn" style="display:none"><option value="monza">MONZA</option><option value="spa">SPA</option><option value="imola">IMOLA</option><option value="silverstone">SILVERSTONE</option><option value="suzuka">SUZUKA</option></select>
@@ -240,6 +281,20 @@
   lockLandscape();
   window.addEventListener('pointerdown', enterFsAndLock, {once:true});
   window.addEventListener('orientationchange', lockLandscape);
+
+  // ---- collapsible HUD ----
+  function gv(k){try{return localStorage.getItem(k)==='1';}catch(e){return false;}}
+  function sv(k,v){try{localStorage.setItem(k,v?'1':'0');}catch(e){}}
+  var tower=document.getElementById('tower'), towerHd=tower&&tower.querySelector('.hd');
+  var mapwrap=document.getElementById('mapwrap'), mapcol=document.getElementById('mapcol');
+  var hudBtn=document.getElementById('hudtoggle');
+  if(gv('gol_tower_c')&&tower) tower.classList.add('collapsed');
+  if(gv('gol_map_c')&&mapwrap) mapwrap.classList.add('collapsed');
+  if(gv('gol_hud_lite')) document.body.classList.add('hud-lite');
+  if(hudBtn) hudBtn.textContent=document.body.classList.contains('hud-lite')?'⊞':'⊟';
+  if(towerHd) towerHd.addEventListener('click',function(){sv('gol_tower_c',tower.classList.toggle('collapsed'));});
+  if(mapcol) mapcol.addEventListener('click',function(ev){ev.stopPropagation();sv('gol_map_c',mapwrap.classList.toggle('collapsed'));});
+  if(hudBtn) hudBtn.addEventListener('click',function(){var c=document.body.classList.toggle('hud-lite');hudBtn.textContent=c?'⊞':'⊟';sv('gol_hud_lite',c);});
 })();
 </script>
 <script type="importmap">
