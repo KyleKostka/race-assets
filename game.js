@@ -78,55 +78,62 @@ var U=document.getElementById("lights"),Gt=[...U.children];function Dt(){if(p.ph
 var BK={get bal(){let v=+localStorage.getItem("gol_bal");return isFinite(v)&&v>0?v:1000},set bal(v){localStorage.setItem("gol_bal",Math.max(0,Math.round(v)))},
 get name(){return localStorage.getItem("gol_name")||""},set name(v){localStorage.setItem("gol_name",v)},
 get hist(){try{return JSON.parse(localStorage.getItem("gol_hist")||"[]")}catch(q){return[]}},set hist(v){localStorage.setItem("gol_hist",JSON.stringify(v.slice(-40)))}};
-var BET={pick:null,stake:0,odds:{},open:!1};
-function mcOdds(trials){trials=trials||1100;let cps=p.comps,laps=p.laps,res=new Array(S).fill(0),posSum=new Array(S).fill(0);
-for(let it=0;it<trials;it++){let rr=$((p.seed^(it*2654435761))>>>0),sc=[],scA=rr()<.7;
+var BET={type:"win",pick:null,hA:null,hB:null,ouSide:null,stake:0,odds:{},open:!1};
+function mcOdds(trials){trials=trials||1100;let cps=p.comps,laps=p.laps,res=new Array(S).fill(0),posSum=new Array(S).fill(0),podC=new Array(S).fill(0),h2hC=new Array(S*S).fill(0),classC=new Array(S+1).fill(0),pos=new Array(S);
+for(let it=0;it<trials;it++){let rr=$((p.seed^(it*2654435761))>>>0),sc=[],scA=rr()<.7,dnf=0;
 for(let c=0;c<S;c++){let a=b[c],cp=cps[a.comp],age=0,tsum=0,big=rr()<.05?1.06:1;
 for(let L=0;L<laps;L++){let wear=Math.min(.14,cp.w*Math.pow(age,1.3)+(age>cp.cliff?.012*(age-cp.cliff):0));
 tsum+=1/(a.rating*big*cp.m*(1-wear));age++}
 let score=-tsum*100-(.05*a.gridPos+1.9*Math.pow(Math.max(0,a.gridPos-5),1.5))-a.stops.length*.55+(rr()-.5)*32;
-if(rr()<.055)score-=999;
+if(rr()<.055){score-=999;dnf++}
 sc.push({c:c,s:score})}if(scA){let m=0;for(let z=0;z<S;z++)m+=sc[z].s;m/=S;for(let z=0;z<S;z++)sc[z].s=m+(sc[z].s-m)*.85+(rr()-.5)*8}
 sc.sort((x,y)=>y.s-x.s);
-for(let k=0;k<sc.length;k++)posSum[sc[k].c]+=k+1;
-res[sc[0].c]++}
+for(let k=0;k<sc.length;k++){posSum[sc[k].c]+=k+1;pos[sc[k].c]=k}
+res[sc[0].c]++;for(let k=0;k<3;k++)podC[sc[k].c]++;for(let A=0;A<S;A++)for(let B=0;B<S;B++)if(pos[A]<pos[B])h2hC[A*S+B]++;classC[S-dnf]++}
 let ep=[];for(let c=0;c<S;c++)ep.push({c:c,p:res[c]/trials,ap:posSum[c]/trials});
 let apMin=Math.min.apply(null,ep.map(x=>x.ap)),apMax=Math.max.apply(null,ep.map(x=>x.ap)),o={};
 let GAM=.85,OVR=1.07,raw=[],sm=0;
 for(let x of ep){let ps=1-(x.ap-apMin)/Math.max(.001,apMax-apMin),v=Math.max(.004,.6*x.p+.4*Math.pow(ps,1.6)*.25);raw.push(v);sm+=v}
 let s2=0,pw=raw.map(v=>{let q=Math.pow(v/sm,GAM);s2+=q;return q});
 for(let c=0;c<S;c++)o[c]=Math.max(1.08,Math.min(99,1/((pw[c]/s2)*OVR)));
+o.pod={};for(let c=0;c<S;c++)o.pod[c]=Math.max(1.08,Math.min(99,1/(Math.max(.01,podC[c]/trials)*OVR)));
+o.h2h=h2hC.map(v=>v/trials);
+{let cP=new Array(S+1).fill(0);cP[S]=.3;cP[S-1]=.4;cP[S-2]=.3;let bestLine=(S-1)+.5,bestD=9;for(let ln=1.5;ln<S;ln+=1){let po=0;for(let kk=Math.ceil(ln);kk<=S;kk++)po+=cP[kk];if(Math.abs(po-.5)<bestD){bestD=Math.abs(po-.5);bestLine=ln}}let pOver=0;for(let k2=Math.ceil(bestLine);k2<=S;k2++)pOver+=cP[k2];pOver=Math.max(.03,Math.min(.97,pOver));o.ou={line:bestLine,over:Math.max(1.08,Math.min(99,1/(pOver*OVR))),under:Math.max(1.08,Math.min(99,1/((1-pOver)*OVR)))}}
 return o}
 function fmtOdds(x){return x<10?x.toFixed(2):x.toFixed(1)}
-function showBet(){BET.open=!0;BET.pick=null;BET.stake=0;
+function betGrid(){return [...Array(S).keys()].sort((x,y)=>b[x].gridPos-b[y].gridPos)}
+function betRowHTML(ci,right,cls){let a=b[ci];return '<div class="betrow'+(cls||"")+'" data-ci="'+ci+'"><span class="bpos">P'+(a.gridPos+1)+'</span><span class="chip" style="background:#'+a.team.color.toString(16).padStart(6,"0")+'"></span><span class="bname">'+a.team.name+'</span>'+right+'</div>'}
+function betRender(){let rows=document.getElementById("betrows");if(!rows)return;let ord=betGrid();
+if(BET.type==="win"||BET.type==="pod"){let od=BET.type==="win"?BET.odds:BET.odds.pod;rows.innerHTML=ord.map(function(ci){return betRowHTML(ci,'<span class="bodds">'+fmtOdds(od[ci])+'x</span>',BET.pick===ci?" sel":"")}).join("");[...rows.children].forEach(function(d){d.onclick=function(){BET.pick=+d.dataset.ci;[...rows.children].forEach(function(r){r.classList.toggle("sel",+r.dataset.ci===BET.pick)});upBet()}})}
+else if(BET.type==="h2h"){rows.innerHTML='<div class="bhint">Pick two — bet the FIRST to finish ahead of the SECOND</div>'+ord.map(function(ci){let s=BET.hA===ci?'<span class="bside a">1st</span>':BET.hB===ci?'<span class="bside b">2nd</span>':'';let cls=BET.hA===ci?" ab-a":BET.hB===ci?" ab-b":"";return betRowHTML(ci,s,cls)}).join("");[...rows.children].forEach(function(d){if(!d.dataset||!d.dataset.ci)return;d.onclick=function(){let ci=+d.dataset.ci;if(BET.hA===ci)BET.hA=null;else if(BET.hB===ci)BET.hB=null;else if(BET.hA===null)BET.hA=ci;else if(BET.hB===null)BET.hB=ci;else BET.hB=ci;betRender();upBet()}})}
+else if(BET.type==="ou"){let ou=BET.odds.ou;rows.innerHTML='<div class="bhint">How many of '+S+' cars finish classified?</div><div id="ourow"><button class="oubtn'+(BET.ouSide==="over"?" sel":"")+'" data-s="over">OVER '+ou.line+'<b>'+fmtOdds(ou.over)+'x</b></button><button class="oubtn'+(BET.ouSide==="under"?" sel":"")+'" data-s="under">UNDER '+ou.line+'<b>'+fmtOdds(ou.under)+'x</b></button></div>';[...rows.querySelectorAll(".oubtn")].forEach(function(bn){bn.onclick=function(){BET.ouSide=bn.dataset.s;[...rows.querySelectorAll(".oubtn")].forEach(function(x){x.classList.toggle("sel",x===bn)});upBet()}})}}
+function betOdds(){let o=BET.odds;if(!o)return null;if(BET.type==="win")return BET.pick!==null?o[BET.pick]:null;if(BET.type==="pod")return BET.pick!==null&&o.pod?o.pod[BET.pick]:null;if(BET.type==="h2h")return(BET.hA!==null&&BET.hB!==null&&BET.hA!==BET.hB&&o.h2h)?Math.max(1.08,Math.min(99,1/(Math.max(.01,o.h2h[BET.hA*S+BET.hB])*1.07))):null;if(BET.type==="ou")return BET.ouSide&&o.ou?o.ou[BET.ouSide]:null;return null}
+function betLabel(){if(BET.type==="win")return"WIN · "+b[BET.pick].team.name;if(BET.type==="pod")return"PODIUM · "+b[BET.pick].team.name;if(BET.type==="h2h")return"H2H · "+b[BET.hA].team.tag+" › "+b[BET.hB].team.tag;if(BET.type==="ou")return(BET.ouSide==="over"?"OVER ":"UNDER ")+BET.odds.ou.line+" cars";return""}
+function showBet(){BET.open=!0;BET.pick=null;BET.hA=null;BET.hB=null;BET.ouSide=null;BET.stake=0;
 let el=document.getElementById("betpanel"),rows=document.getElementById("betrows");
 document.getElementById("betbal").textContent="$"+BK.bal.toLocaleString();
 document.getElementById("bettrack").textContent=M.label+" · "+p.laps+" LAPS";
 BET.odds=mcOdds(320);
-let order=[...Array(S).keys()].sort((x,y)=>b[x].gridPos-b[y].gridPos);
-rows.innerHTML="";
-order.forEach(ci=>{let a=b[ci],d=document.createElement("div");d.className="betrow";d.dataset.ci=ci;
-d.innerHTML='<span class="bpos">P'+(a.gridPos+1)+'</span><span class="chip" style="background:#'+a.team.color.toString(16).padStart(6,"0")+'"></span><span class="bname">'+a.team.name+'</span><span class="btyre" style="color:'+p.comps[a.comp].col+'">'+a.comp+'</span><span class="bodds">'+fmtOdds(BET.odds[ci])+'x</span>';
-d.onclick=()=>{BET.pick=ci;[...rows.children].forEach(r=>r.classList.toggle("sel",+r.dataset.ci===ci));upBet()};
-rows.appendChild(d)});
+(function(){let tabs=document.querySelectorAll("#bettabs .btab");tabs.forEach(t=>{t.classList.toggle("on",t.dataset.t===BET.type);t.onclick=()=>{BET.type=t.dataset.t;BET.pick=null;BET.hA=null;BET.hB=null;BET.ouSide=null;tabs.forEach(x=>x.classList.toggle("on",x===t));betRender();upBet()}})})();
+betRender();
 el.style.display="flex";upBet()}
-function upBet(){let ok=BET.pick!==null&&BET.stake>0&&BET.stake<=BK.bal;
+function upBet(){let od=betOdds(),ok=od!==null&&BET.stake>0&&BET.stake<=BK.bal;
 document.getElementById("betgo").disabled=!ok;
 document.getElementById("betstake").textContent="$"+BET.stake;
-document.getElementById("betret").textContent=ok?"returns $"+Math.round(BET.stake*BET.odds[BET.pick]).toLocaleString():"—";
+document.getElementById("betret").textContent=ok?"returns $"+Math.round(BET.stake*od).toLocaleString():"—";
 [...document.querySelectorAll("#betchips .chip2")].forEach(c=>c.classList.toggle("on",+c.dataset.v===BET.stake))}
 function closeBet(go){BET.open=!1;document.getElementById("betpanel").style.display="none";
-if(go&&BET.pick!==null&&BET.stake>0){BK.bal=BK.bal-BET.stake;BET.placed={ci:BET.pick,stake:BET.stake,odds:BET.odds[BET.pick]}}else BET.placed=null;
+if(go&&betOdds()!==null&&BET.stake>0){BK.bal=BK.bal-BET.stake;BET.placed={type:BET.type,pick:BET.pick,hA:BET.hA,hB:BET.hB,ouSide:BET.ouSide,line:BET.odds.ou?BET.odds.ou.line:0,stake:BET.stake,odds:betOdds(),label:betLabel()}}else BET.placed=null;
 document.getElementById("bal").textContent="$"+BK.bal.toLocaleString();
 p.phase="countdown";p.t=-4.4}
 function settleBet(){let pl=BET.placed;if(!pl)return null;
-let won=st.length&&st[0]===pl.ci,pay=won?Math.round(pl.stake*pl.odds):0;
+let won=!1;if(st.length){let fp=function(ci){return st.indexOf(ci)};if(pl.type==="pod")won=fp(pl.pick)>=0&&fp(pl.pick)<3;else if(pl.type==="h2h")won=fp(pl.hA)>=0&&fp(pl.hB)>=0&&fp(pl.hA)<fp(pl.hB);else if(pl.type==="ou"){let cl=b.filter(function(x){return!x.out}).length;won=pl.ouSide==="over"?cl>pl.line:cl<pl.line}else won=st[0]===pl.pick}let pay=won?Math.round(pl.stake*pl.odds):0;
 BK.bal=BK.bal+pay;
-let h=BK.hist;h.push({t:M.label,d:b[pl.ci].team.tag,s:pl.stake,o:pl.odds,w:won,p:pay});BK.hist=h;
+let h=BK.hist;h.push({t:M.label,d:pl.label,s:pl.stake,o:pl.odds,w:won,p:pay});BK.hist=h;
 document.getElementById("bal").textContent="$"+BK.bal.toLocaleString();
 BET.placed=null;
 if(window.golPush)window.golPush(BK.bal);
-return{won:won,pay:pay,tag:b[pl.ci].team.tag,stake:pl.stake,odds:pl.odds}}
+return{won:won,pay:pay,tag:pl.label,stake:pl.stake,odds:pl.odds}}
 
 /* ---------- shared leaderboard ---------- */
 var SB={url:"https://elndriczyjzagcahvact.supabase.co",key:"sb_publishable_2PPGOUljh-m_3xSSUFZ3Vg_xkIqE4Vw"};
