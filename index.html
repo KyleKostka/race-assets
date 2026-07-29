@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <link rel="icon" href="data:,">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Grid of Legends</title>
 <style>
   :root{ --panel: rgba(12,14,22,.82); --accent:#e10600; --txt:#f2f3f7; }
@@ -11,6 +11,14 @@
   html,body{width:100%;height:100%;overflow:hidden;background:#0a0c12;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt)}
   #app{position:fixed;inset:0}
   canvas#gl{display:block;width:100%;height:100%}
+
+  /* mobile: force landscape — prompt to rotate on touch devices held in portrait */
+  #rotate{position:fixed;inset:0;z-index:99999;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#0a0c12;color:var(--txt);text-align:center;padding:24px}
+  #rotate .ph{font-size:56px;line-height:1;animation:rotspin 1.8s ease-in-out infinite;transform-origin:center}
+  #rotate .rh{font-size:16px;font-weight:800;letter-spacing:.14em}
+  #rotate .rt{font-size:13px;color:#aab;max-width:300px;line-height:1.6}
+  @keyframes rotspin{0%,55%{transform:rotate(0)}80%,100%{transform:rotate(-90deg)}}
+  @media (orientation:portrait) and (pointer:coarse){ #rotate{display:flex} }
 
   .hud{position:absolute;pointer-events:none;user-select:none}
 
@@ -207,7 +215,33 @@
     <div class="btns"><button class="btn" id="btnMenu2">NEW TRACK</button><button class="btn" id="btnReplay2">REPLAY</button><button class="btn primary" id="btnNew2">NEW RACE</button></div>
   </div></div>
 </div>
+<div id="rotate"><div class="ph">📱</div><div class="rh">ROTATE TO LANDSCAPE</div><div class="rt">Grid of Legends runs in landscape. Turn your device sideways to race.</div></div>
 
+<script>
+(function(){
+  var touch = matchMedia('(pointer:coarse)').matches;
+  function lockLandscape(){
+    try{
+      var o = screen.orientation;
+      if(o && o.lock){ var p = o.lock('landscape'); if(p && p.catch) p.catch(function(){}); }
+    }catch(e){}
+  }
+  function enterFsAndLock(){
+    if(!touch) return;
+    try{
+      var el = document.documentElement;
+      if(!document.fullscreenElement && el.requestFullscreen){
+        var r = el.requestFullscreen({navigationUI:'hide'});
+        if(r && r.then) r.then(lockLandscape, lockLandscape); else lockLandscape();
+      } else { lockLandscape(); }
+    }catch(e){ lockLandscape(); }
+  }
+  // try immediately (works when already fullscreen), and again on the first tap
+  lockLandscape();
+  window.addEventListener('pointerdown', enterFsAndLock, {once:true});
+  window.addEventListener('orientationchange', lockLandscape);
+})();
+</script>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/examples/jsm/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
