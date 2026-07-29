@@ -135,6 +135,11 @@
   #qual #qualskip{margin:9px 16px 2px;width:calc(100% - 32px);padding:9px;border:0;border-radius:9px;background:#242b3a;color:#cfd6e4;font-weight:800;font-size:12px;cursor:pointer;letter-spacing:.05em}
   @media (max-height:520px){ #qual{padding:8px 0 6px} #qual .qrow{padding:2px 14px;font-size:11px} }
 
+  /* safety car banner */
+  #scbanner{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:77;display:none;background:linear-gradient(90deg,#4a3c00,#7a6400);border:1px solid #ffd24a;color:#ffe680;font-weight:900;letter-spacing:.14em;font-size:13px;padding:8px 20px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.5);animation:scpulse 1.2s ease-in-out infinite;pointer-events:none}
+  @keyframes scpulse{0%,100%{opacity:1}50%{opacity:.6}}
+  @media (max-height:520px){ #scbanner{top:44px;font-size:11px;padding:6px 15px} }
+
   /* betting */
   #betpanel{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(6,8,14,.82);z-index:60;pointer-events:auto;backdrop-filter:blur(3px)}
   #betpanel .card{width:min(560px,94vw);max-height:92vh;display:flex;flex-direction:column;background:#141822;border-radius:16px;overflow:hidden;box-shadow:0 24px 90px rgba(0,0,0,.7)}
@@ -254,6 +259,7 @@
   <button class="mbtn go" id="mgo">START RACE WEEKEND</button>
   <div class="mfoot">bankroll <span class="mbal" id="mbal">$1,000</span> &middot; <span id="mname" style="cursor:pointer;text-decoration:underline dotted;color:#ffd24a">set name</span></div>
 </div></div>
+<div id="scbanner">🟡 SAFETY CAR</div>
 <div id="qual"><div class="qhd"><span id="qualtitle">OVAL SPRINT · QUALIFYING</span><span id="qualtimer">20.0s</span></div><div id="qualrows"></div><button id="qualskip">SKIP QUALIFYING ›</button></div>
 <div id="betpanel"><div class="card">
   <div class="hd"><div><small>PLACE YOUR BET</small><b id="bettrack">—</b></div><div style="text-align:right"><small>BALANCE</small><b id="betbal">$1,000</b></div></div>
