@@ -43,8 +43,12 @@ jobs:
           gltf-transform optimize z_tracks/circuit_de_spa-francorchamps_1992_layout.glb tracks/spa.glb --compress meshopt --texture-compress webp --texture-size 1024 --simplify-error 0.002
           gltf-transform optimize z_tracks/imola_circuit_2024_layout.glb tracks/imola.glb --compress meshopt --texture-compress webp --texture-size 1024 --simplify-error 0.002
           gltf-transform optimize z_tracks/silverstone_circuit_2024_layout.glb tracks/silverstone.glb --compress meshopt --texture-compress webp --texture-size 1024 --simplify-error 0.002
+          gltf-transform optimize z_tracks/barcelona-catalunya_grand_prix_2023_layout.glb tracks/barcelona.glb --compress meshopt --texture-compress webp --texture-size 2048 --simplify-error 0.002
+          gltf-transform optimize z_tracks/marina_bay_street_circuit.glb tracks/singapore.glb --compress meshopt --texture-compress webp --texture-size 2048 --simplify-error 0.002
+          gltf-transform optimize z_tracks/nurburgring_gp_2016_layout.glb tracks/nurburgring.glb --compress meshopt --texture-compress webp --texture-size 2048 --simplify-error 0.002
+          gltf-transform optimize z_tracks/shanghai_international_circuit_2018_layout.glb tracks/shanghai.glb --compress meshopt --texture-compress webp --texture-size 2048 --simplify-error 0.002
           echo "--- optimized outputs ---"
-          ls -la tracks/monza.glb tracks/spa.glb tracks/imola.glb tracks/silverstone.glb
+          ls -la tracks/*.glb
 
       - name: Commit optimized meshes
         run: |
@@ -52,7 +56,7 @@ jobs:
           rm -rf z_tracks z_tracks.zip
           git config user.name "Kyle Kostka"
           git config user.email "kostka.kyle@gmail.com"
-          git add tracks/monza.glb tracks/spa.glb tracks/imola.glb tracks/silverstone.glb
+          git add tracks/*.glb
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
@@ -63,3 +67,5 @@ jobs:
 # retrigger: run 2
 
 # retrigger: run 3 (public)
+
+# retrigger: run 4 (4 new circuits: barcelona, singapore, nurburgring, shanghai)
