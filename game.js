@@ -222,7 +222,7 @@ if(prev!==void 0&&pos<prev&&CMT.t>2.2){let ov=ord[pos+1];if(ov&&Math.abs(b[x.i].
 say("<b>P"+(pos+1)+"</b> "+b[x.i].team.name+" passes "+b[ov.i].team.name)}}
 CMT.last[x.i]=pos});
 for(let c=0;c<S;c++){let a=b[c];
-if(a.inPit&&!a._sp){a._sp=1;say("<b>PIT</b> "+a.team.name+" boxes for "+p.comps[a.newComp].col.replace("#","").length?p.comps[a.newComp]&&a.newComp:"" )}
+if(a.inPit&&!a._sp){a._sp=1;say("<b>PIT</b> "+a.team.name+" boxes for "+a.newComp)}
 if(!a.inPit&&a._sp===1){a._sp=2;say("<b>OUT</b> "+a.team.name+" rejoins on "+a.comp)}
 if(a.out&&!a._so){a._so=1;say("<b>INCIDENT</b> "+a.team.name+" is out")}}}
 /* ---------- camera control ---------- */
