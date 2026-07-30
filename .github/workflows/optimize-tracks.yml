@@ -39,16 +39,33 @@ jobs:
       - name: Optimize circuits
         run: |
           set -euo pipefail
-          gltf-transform optimize z_tracks/autodromo_nazionale_monza_circuit_2020_layout.glb tracks/monza.glb --compress meshopt --texture-compress webp --texture-size 1024 --simplify-error 0.002
-          gltf-transform optimize z_tracks/circuit_de_spa-francorchamps_1992_layout.glb tracks/spa.glb --compress meshopt --texture-compress webp --texture-size 1024 --simplify-error 0.002
-          gltf-transform optimize z_tracks/imola_circuit_2024_layout.glb tracks/imola.glb --compress meshopt --texture-compress webp --texture-size 1024 --simplify-error 0.002
-          gltf-transform optimize z_tracks/silverstone_circuit_2024_layout.glb tracks/silverstone.glb --compress meshopt --texture-compress webp --texture-size 1024 --simplify-error 0.002
-          gltf-transform optimize z_tracks/barcelona-catalunya_grand_prix_2023_layout.glb tracks/barcelona.glb --compress meshopt --texture-compress webp --texture-size 2048 --simplify-error 0.002
-          gltf-transform optimize z_tracks/marina_bay_street_circuit.glb tracks/singapore.glb --compress meshopt --texture-compress webp --texture-size 2048 --simplify-error 0.002
-          gltf-transform optimize z_tracks/nurburgring_gp_2016_layout.glb tracks/nurburgring.glb --compress meshopt --texture-compress webp --texture-size 2048 --simplify-error 0.002
-          gltf-transform optimize z_tracks/shanghai_international_circuit_2018_layout.glb tracks/shanghai.glb --compress meshopt --texture-compress webp --texture-size 2048 --simplify-error 0.002
+          # --prune-solid-textures false keeps near-solid textures (shadow
+          # gradients, glass, grids) as textures instead of collapsing them to
+          # flat colour factors, which is what silently dropped 11 materials'
+          # baseColorTexture across 5 circuits (e.g. Monza shadow_serraglio).
+          OPT="--compress meshopt --texture-compress webp --simplify-error 0.002 --prune-solid-textures false"
+          gltf-transform optimize z_tracks/autodromo_nazionale_monza_circuit_2020_layout.glb tracks/monza.glb $OPT --texture-size 1024
+          gltf-transform optimize z_tracks/circuit_de_spa-francorchamps_1992_layout.glb tracks/spa.glb $OPT --texture-size 1024
+          gltf-transform optimize z_tracks/imola_circuit_2024_layout.glb tracks/imola.glb $OPT --texture-size 1024
+          gltf-transform optimize z_tracks/silverstone_circuit_2024_layout.glb tracks/silverstone.glb $OPT --texture-size 1024
+          gltf-transform optimize z_tracks/barcelona-catalunya_grand_prix_2023_layout.glb tracks/barcelona.glb $OPT --texture-size 2048
+          gltf-transform optimize z_tracks/marina_bay_street_circuit.glb tracks/singapore.glb $OPT --texture-size 2048
+          gltf-transform optimize z_tracks/shanghai_international_circuit_2018_layout.glb tracks/shanghai.glb $OPT --texture-size 2048
           echo "--- optimized outputs ---"
           ls -la tracks/*.glb
+
+      - name: Texture-parity gate
+        run: |
+          set -euo pipefail
+          npm install --no-save @gltf-transform/core@4.4.2 @gltf-transform/extensions@4.4.2
+          node .github/scripts/texture-parity.mjs \
+            "z_tracks/autodromo_nazionale_monza_circuit_2020_layout.glb::tracks/monza.glb" \
+            "z_tracks/circuit_de_spa-francorchamps_1992_layout.glb::tracks/spa.glb" \
+            "z_tracks/imola_circuit_2024_layout.glb::tracks/imola.glb" \
+            "z_tracks/silverstone_circuit_2024_layout.glb::tracks/silverstone.glb" \
+            "z_tracks/barcelona-catalunya_grand_prix_2023_layout.glb::tracks/barcelona.glb" \
+            "z_tracks/marina_bay_street_circuit.glb::tracks/singapore.glb" \
+            "z_tracks/shanghai_international_circuit_2018_layout.glb::tracks/shanghai.glb"
 
       - name: Commit optimized meshes
         run: |
@@ -69,3 +86,5 @@ jobs:
 # retrigger: run 3 (public)
 
 # retrigger: run 4 (4 new circuits: barcelona, singapore, nurburgring, shanghai)
+
+# retrigger: run 5 (fix dropped textures: --prune-solid-textures false + parity gate; drop nurburgring)
