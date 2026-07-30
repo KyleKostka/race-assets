@@ -39,11 +39,12 @@ jobs:
       - name: Optimize circuits
         run: |
           set -euo pipefail
-          # --no-prune: the prune pass was stripping baseColorTexture from
-          # SURVIVING materials (bisected on the Monza source: shadow_serraglio
-          # tex=NONE with prune, tex=YES with --no-prune; shadow_serraglio is the
-          # green smear). Cost is ~1.2% file size (16.50MB -> 16.69MB on Monza).
-          OPT="--compress meshopt --texture-compress webp --simplify-error 0.002 --no-prune"
+          # --prune-solid-textures false: keep prune's other cleanup but disable
+          # only the sub-behaviour that collapses near-solid textures (shadow
+          # gradients, glass, grids) into flat colour factors - which was eating
+          # baseColorTexture from surviving materials (Monza shadow_serraglio /
+          # physics). Restores them at ZERO size cost (vs --no-prune's ~1.2%).
+          OPT="--compress meshopt --texture-compress webp --simplify-error 0.002 --prune-solid-textures false"
           gltf-transform optimize z_tracks/autodromo_nazionale_monza_circuit_2020_layout.glb tracks/monza.glb $OPT --texture-size 1024
           gltf-transform optimize z_tracks/circuit_de_spa-francorchamps_1992_layout.glb tracks/spa.glb $OPT --texture-size 1024
           gltf-transform optimize z_tracks/imola_circuit_2024_layout.glb tracks/imola.glb $OPT --texture-size 1024
@@ -88,3 +89,5 @@ jobs:
 # retrigger: run 4 (4 new circuits: barcelona, singapore, nurburgring, shanghai)
 
 # retrigger: run 5 (fix dropped textures: --no-prune + survivor-only parity gate; drop nurburgring)
+
+# retrigger: run 6 (--prune-solid-textures false: same fix at zero size cost; rebuild all meshes)
