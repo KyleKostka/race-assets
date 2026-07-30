@@ -58,7 +58,7 @@ jobs:
       - name: Texture-parity gate
         run: |
           set -euo pipefail
-          npm install --no-save @gltf-transform/core@4.4.2 @gltf-transform/extensions@4.4.2
+          npm install --no-save @gltf-transform/core@4.4.2 @gltf-transform/extensions@4.4.2 meshoptimizer
           node .github/scripts/texture-parity.mjs \
             "z_tracks/autodromo_nazionale_monza_circuit_2020_layout.glb::tracks/monza.glb" \
             "z_tracks/circuit_de_spa-francorchamps_1992_layout.glb::tracks/spa.glb" \

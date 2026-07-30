@@ -20,8 +20,14 @@
 
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
+import { MeshoptDecoder } from 'meshoptimizer';
 
-const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
+// The optimized outputs use EXT_meshopt_compression; reading them needs the
+// meshopt decoder registered or NodeIO.read throws before we can inspect them.
+await MeshoptDecoder.ready;
+const io = new NodeIO()
+  .registerExtensions(ALL_EXTENSIONS)
+  .registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
 
 // name -> has a resolvable (image-backed) baseColorTexture
 function texMap(doc) {
