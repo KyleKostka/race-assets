@@ -2,6 +2,12 @@
 //   node sim.test.mjs
 // Prints every measured value (not just pass/fail) so a regression shows exactly
 // what moved. Exits non-zero if any assertion fails. Fixed seed set -> reproducible.
+//
+// Scope: this nets the odds MODEL (setupRace / simRaceOnce / mcOdds), which is what
+// sim.js contains. The live-race frame integrator (Mt, in game.js) is NOT extracted,
+// so race-OUTCOME numbers are locked to the model's current baseline (see lock()
+// below) with Kyle's live-race targets printed for context -- reconciling the two
+// is deferred to avoid touching frozen race maths.
 
 import { setupRace, mcOdds, simRaceOnce, mkRng, pitLossSeconds } from "./sim.js";
 
@@ -13,12 +19,19 @@ function assert(name, ok, measured, expected) {
   console.log(`${ok ? "PASS" : "FAIL"}  ${name}: ${measured}${expected ? `  (expect ${expected})` : ""}`);
   if (!ok) failures.push(`${name} -> ${measured} (expect ${expected})`);
 }
-// Informational: race-OUTCOME numbers whose targets are the live-race (Mt physics)
-// distribution, which sim.js (the odds MODEL) legitimately differs from. Printed
-// for drift monitoring; not a hard gate. Promote to assert() once the model and
-// the live race are reconciled (or the Mt physics is extracted for a live test).
-function report(name, measured, target) {
-  console.log(`INFO  ${name}: ${measured}  (live-race target ${target})`);
+// Baseline regression locks for race-OUTCOME numbers. sim.js is the odds MODEL;
+// its outcome distribution legitimately differs from the live-race (Mt physics)
+// distribution Kyle tunes to (55/35/10 etc.) because simRaceOnce is a scoring
+// model, not a headless replica of the frame integrator. Reconciling the two (or
+// extracting Mt for a true live-race test) would touch the frozen race maths and
+// is deliberately deferred. Until then these lock the MODEL's CURRENT output --
+// the seed set is fixed and the RNG deterministic, so any real drift in
+// setupRace/simRaceOnce/mcOdds moves these and turns the gate red; the live-race
+// target is printed alongside for context.
+function lock(name, val, lo, hi, target) {
+  const ok = val >= lo && val <= hi;
+  console.log(`${ok ? "PASS" : "FAIL"}  ${name}: ${val}  (baseline ${lo}-${hi}; live-race target ${target})`);
+  if (!ok) failures.push(`${name} -> ${val} (baseline ${lo}-${hi}; live-race target ${target})`);
 }
 
 function spearman(x, y) {
@@ -101,16 +114,16 @@ for (const seed of seeds) {
 }
 
 const w1 = 100 * bucketWins[0] / totalTrials, w2 = 100 * bucketWins[1] / totalTrials, w3 = 100 * bucketWins[2] / totalTrials;
-report("wins by grid 1-3", `${w1.toFixed(1)}%`, "55%");
-report("wins by grid 4-6", `${w2.toFixed(1)}%`, "35%");
-report("wins by grid 7-10", `${w3.toFixed(1)}%`, "10%");
+lock("wins by grid 1-3 %", +w1.toFixed(1), 48, 55, "55");
+lock("wins by grid 4-6 %", +w2.toFixed(1), 27, 34, "35");
+lock("wins by grid 7-10 %", +w3.toFixed(1), 15, 21, "10");
 
 let maxCal = 0, worstRank = 0;
 for (let r = 0; r < S; r++) {
   const d = Math.abs(impliedByRank[r] / N - actualByRank[r] / N);
   if (d > maxCal) { maxCal = d; worstRank = r; }
 }
-report("max odds-rank calibration gap (reflects GAM favourite-longshot transform)", `${(maxCal * 100).toFixed(1)}pts at rank ${worstRank + 1}`, "<5pts");
+lock(`max odds-rank calibration gap pts (GAM transform, worst rank ${worstRank + 1})`, +(maxCal * 100).toFixed(1), 8, 15, "<5");
 
 const overround = overroundSum / N - 1;
 assert("book overround 5-10%", overround >= 0.05 && overround <= 0.10, `${(overround * 100).toFixed(1)}%`, "5-10%");
@@ -120,7 +133,7 @@ assert("odds-to-finish Spearman > 0.45", spear > 0.45, spear.toFixed(3), ">0.45"
 
 const lsWins = rankWins[7] + rankWins[8] + rankWins[9], lsShare = lsWins / totalTrials;
 assert("longshots (bottom-3 odds ranks) win at least once", lsWins > 0, `${lsWins} wins`, ">0");
-report("longshots (bottom-3 odds) combined win share", `${(lsShare * 100).toFixed(2)}%`, "<3%");
+lock("longshots (bottom-3 odds) combined win share %", +(lsShare * 100).toFixed(2), 4.0, 7.0, "<3");
 
 assert("stop laps strictly increasing & within race", structOk, structOk ? "all valid" : structMsg, "valid");
 assert("no NaN / non-finite finishing score", scoreBad === 0, `${scoreBad} bad`, "0");
@@ -137,7 +150,7 @@ for (const seed of seeds) {
   win3_total++; if (race.drivers[oc.order[0]].stops.length === 1) win3_1stop++;
 }
 const p1_3 = 100 * win3_1stop / win3_total;
-report("winners 1-stop at 3 laps", `${p1_3.toFixed(1)}%`, ">=85%");
+lock("winners 1-stop @3 laps %", +p1_3.toFixed(1), 71, 82, ">=85");
 // Direction check (this IS a hard invariant): 3-lap winners must be MORE 1-stop
 // than 13-lap winners — tyre life scaling with race length.
 const p1_13 = 100 * (win13_total - win13_2stop) / win13_total;
